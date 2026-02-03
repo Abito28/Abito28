@@ -1,24 +1,34 @@
 <?php
-// 1. エラーを画面に表示する設定
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-// 2. 接続情報（自分のRDSのものに書き換え）
-$host = 'database-my2.c7is2wo625to.ap-northeast-1.rds.amazonaws.com'; 
-$user = 'admin'; 
+$host = 'my-database.c7is2wo625to.ap-northeast-1.rds.amazonaws.com';
+$user = 'admin';
 $pass = 'Toko280612';
-$db   = 'mysql'; // 最初は確実に存在する 'mysql' データベースでテスト
 
-// 3. 接続実行
-$conn = new mysqli($host, $user, $pass, $db);
+// 1. 接続する（この時点では特定のDBを指定しない）
+$conn = new mysqli($host, $user, $pass);
 
-// 4. チェック
 if ($conn->connect_error) {
     die("接続失敗: " . $conn->connect_error);
 }
 
-echo "<h1>RDS接続成功！</h1>";
-echo "PHPからRDSへの通信が正常に確立されました。";
+// 2. 「my_app_db」という名前の自分専用の箱を作る命令
+$conn->query("CREATE DATABASE IF NOT EXISTS my_app_db");
+
+// 3. 作った箱の中に移動する
+$conn->select_db("my_app_db");
+
+// 4. その中に「users（会員名簿）」というテーブルを作る
+$sql = "CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
+
+if ($conn->query($sql) === TRUE) {
+    echo "<h1>成功しました！</h1>";
+    echo "自分専用のデータベース 'my_app_db' とテーブル 'users' が完成しました。";
+} else {
+    echo "エラー: " . $conn->error;
+}
 
 $conn->close();
 ?>
